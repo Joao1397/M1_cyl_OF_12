@@ -1,0 +1,140 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#includeEtc "caseDicts/mesh/generation/snappyHexMeshDict.cfg"
+
+// Which of the steps to run
+castellatedMesh true;
+snap            true;
+addLayers       false;
+
+geometry
+{
+    banana_stlSurface
+    {
+        type triSurfaceMesh;
+        file "surfacemesh.stl";
+    }
+
+    refinementBox
+    {
+        type searchableBox;
+        min (-2 -2 -2);
+        max (2 2 2);
+    }
+
+};
+
+castellatedMeshControls
+{
+
+    // Refinement parameters
+    maxLocalCells 100000;
+    maxGlobalCells 2000000;
+    minRefinementCells 0;
+    maxLoadUnbalance 0.10;
+    nCellsBetweenLevels 3;
+    // Explicit feature edge refinement
+
+    features
+    (
+        file "surfacemesh.eMesh";
+            level 0;
+          // level 4;
+    );
+
+    refinementSurfaces
+    {
+        banana_stlSurface
+        {
+	        // global
+            // Surface-wise min and max refinement level
+            level (2 2);
+        }
+    }
+
+    // Feature angle:
+    resolveFeatureAngle 30;		//recommended
+    //resolveFeatureAngle 60;		//To avoid too much refinement with curvature	
+
+    planarAngle 30;
+
+    // Region-wise refinement
+    refinementRegions
+    {
+        refinementBox
+        {
+            mode inside;        	// inside - outside
+            levels ((1 1));     	// min max
+
+            //mode distance;        	// 
+            //levels ((0.1 1));     	//first number distance normal to the surface in both direction
+        }
+    }
+
+    
+    // Mesh selection
+    locationInMesh (4.0 0.1 0.1); 
+    allowFreeStandingZoneFaces true;
+}
+
+snapControls
+{
+    nSmoothPatch 3;	//recommended
+    //nSmoothPatch 10;	//improved
+    tolerance 2.0;
+    //tolerance 1.0;
+    nSolveIter 30;	//recommended
+    //nSolveIter 100;	//improved
+    nRelaxIter 5;	//recommended
+    //nRelaxIter 10;	//improved	10-20-50
+
+    // Feature snapping
+    nFeatureSnapIter 10;	//recommended
+    //nFeatureSnapIter 100;	//improved 	20-50-100
+    implicitFeatureSnap false;
+    explicitFeatureSnap true;
+    multiRegionFeatureSnap false;
+}
+
+addLayersControls
+{
+    layers
+    {
+        "CAD.*"
+        {
+            nSurfaceLayers 2;
+        }
+    }
+
+    relativeSizes       true; // false, usually with firstLayerThickness
+    expansionRatio      1.2;
+    finalLayerThickness 0.5;
+    minThickness        1e-3;
+//  firstLayerThickness 0.01;
+
+//  maxThicknessToMedialRatio 0.6;
+}
+
+writeFlags
+(
+//    scalarLevels
+    layerSets
+    layerFields
+);
+
+mergeTolerance 1e-6;
+
+// ************************************************************************* //
