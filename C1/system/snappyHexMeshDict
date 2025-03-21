@@ -30,9 +30,9 @@ geometry
 
     refinementBox
     {
-        type searchableBox;
-        min (-2 -2 -2);
-        max (2 2 2);
+        type searchableBox; // This is the zone where we want to apply the refinement
+        min (-2 -2 -2); // Dimensions of geometrical entity
+        max (2 2 2); // Dimensions of geometrical entity
     }
 
 };
@@ -46,13 +46,15 @@ castellatedMeshControls
     minRefinementCells 0;
     maxLoadUnbalance 0.10;
     nCellsBetweenLevels 3;
+    
     // Explicit feature edge refinement
-
     features
     (
-        file "surfacemesh.eMesh";
-            level 0;
-          // level 4;
+        {
+            file "surfacemesh.eMesh"; // To enable and control edge refinement level
+            // level 6;
+            level 6;
+        }
     );
 
     refinementSurfaces
@@ -61,12 +63,17 @@ castellatedMeshControls
         {
 	        // global
             // Surface-wise min and max refinement level
-            level (2 2);
+            /*
+            To control surface refinement. The first digit controls the global surface refinement level, 
+            and the second digit controls the curvature refinement level, 
+            according to the angle set in the entry resolveFeatureAngle
+            */
+            level (2 4);
         }
     }
 
-    // Feature angle:
-    resolveFeatureAngle 30;		//recommended
+    // Local curvature and feature angle refinement
+    resolveFeatureAngle 5;		//recommended
     //resolveFeatureAngle 60;		//To avoid too much refinement with curvature	
 
     planarAngle 30;
@@ -76,14 +83,13 @@ castellatedMeshControls
     {
         refinementBox
         {
-            mode inside;        	// inside - outside
-            levels ((1 1));     	// min max
-
+            mode inside;        	// inside - outside // Type of refinement (inside, outside, or distance mode)
+            levels ((1 1));     	// min max // If distance mode is used, 
+                                    // it represents the distance normal to the wall (in both direction)
             //mode distance;        	// 
             //levels ((0.1 1));     	//first number distance normal to the surface in both direction
         }
     }
-
     
     // Mesh selection
     locationInMesh (4.0 0.1 0.1); 
@@ -92,18 +98,18 @@ castellatedMeshControls
 
 snapControls
 {
-    nSmoothPatch 3;	//recommended
-    //nSmoothPatch 10;	//improved
+    nSmoothPatch 3; // recommended
+    // nSmoothPatch 10; // improved
     tolerance 2.0;
-    //tolerance 1.0;
-    nSolveIter 30;	//recommended
-    //nSolveIter 100;	//improved
-    nRelaxIter 5;	//recommended
-    //nRelaxIter 10;	//improved	10-20-50
+    // tolerance 1.0;
+    nSolveIter 30; // recommended
+    // nSolveIter 100; // improved
+    nRelaxIter 5; // recommended
+    // nRelaxIter 10; //improved 10-20-50
 
     // Feature snapping
-    nFeatureSnapIter 10;	//recommended
-    //nFeatureSnapIter 100;	//improved 	20-50-100
+    nFeatureSnapIter 10;    // recommended
+    // nFeatureSnapIter 100;     // improved 20-50-100
     implicitFeatureSnap false;
     explicitFeatureSnap true;
     multiRegionFeatureSnap false;
@@ -113,27 +119,65 @@ addLayersControls
 {
     layers
     {
-        "CAD.*"
+        banana_stlSurface
         {
-            nSurfaceLayers 2;
+            nSurfaceLayers 3;
         }
     }
 
     relativeSizes       true; // false, usually with firstLayerThickness
     expansionRatio      1.2;
     finalLayerThickness 0.5;
-    minThickness        1e-3;
+    minThickness        0.01;
+//  minThickness      1e-3;
 //  firstLayerThickness 0.01;
 
 //  maxThicknessToMedialRatio 0.6;
+
+    nGrow 0;
+
+    // Advanced settings
+    featureAngle 130; //default
+    maxFaceThicknessRatio 0.5;
+    nSmoothSurfaceNormals 1;
+    nSmoothThickness 10;
+    minMedialAxisAngle 90;
+    minMedianAxisAngle 90;
+    maxThicknessToMedialRatio 0.3;
+    nSmoothNormals 3;
+    slipFeatureAngle 30;
+    nRelaxIter 5;
+    nBufferCellsNoExtrude 0;
+    nLayerIter 50;
+    nRelaxedIter 20;
 }
+
+meshQualityControls
+{
+    #include "meshQualityDict"
+
+    // Number of error distribution iterations
+    nSmoothScale 4;
+    // amount to scale back displacement at error points
+    errorReduction 0.75;
+}
+
+debugFlags
+(
+    // mesh            // write intermediate meshes
+    // intersections   // write current mesh intersections as .obj files
+    // featureSeeds    // write information about explicit feature edge refinement
+    // attraction      // write attraction as .obj files
+    // layerInfo       // write information about layers
+);
 
 writeFlags
 (
-//    scalarLevels
-    layerSets
-    layerFields
+    // scalarLevels    // write volScalarField with cellLevel for postprocessing
+    // layerSets       // write cellSets, faceSets of faces in layer
+    // layerFields     // write volScalarField for layer coverage
 );
+
 
 mergeTolerance 1e-6;
 
