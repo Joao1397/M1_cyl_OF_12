@@ -56,7 +56,8 @@ castellatedMeshControls
             level 6;
         }
     );
-
+    
+    // Surface based refinement
     refinementSurfaces
     {
         banana_stlSurface
@@ -117,6 +118,13 @@ snapControls
 
 addLayersControls
 {
+    // Layer thickness specification. This can be specified in one of following
+    // ways:
+    // - expansionRatio and finalLayerThickness (cell nearest internal mesh)
+    // - expansionRatio and firstLayerThickness (cell on surface)
+    // - overall thickness and firstLayerThickness
+    // - overall thickness and finalLayerThickness
+    // - overall thickness and expansionRatio
     layers
     {
         banana_stlSurface
